@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postgresql
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argroj.io 
+spec:
+  project: default
+  source:
+    repoURL: 'https://charts.bitnami.com/bitnami'
+    chart: postgresql
+    targetRevision: 12.1.6 #
+    helm:
+      values: |
+        auth:
+          username: "admin"
+          password: "your-super-secret-password" 
+          database: "llm_usage_db"
+        primary:
+          persistence:
+            enabled: true
+            size: 1Gi
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: default 
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
