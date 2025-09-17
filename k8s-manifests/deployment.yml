@@ -14,6 +14,8 @@ spec:
       labels:
         app: llm-api
     spec:
+      nodeSelector:
+        gpu: "true"
       containers:
       - name: llm-api
         image: ariefshaik007/llm-api:latest
