@@ -3,4 +3,4 @@
 image:
   repository: ariefshaik007/llm-api
   pullPolicy: IfNotPresent
-  tag: '17794311749'
+  tag: '17796490489'
