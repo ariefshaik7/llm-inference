@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 from transformers import pipeline
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -43,6 +43,7 @@ async def verify_api_key(x_api_key: str = Header(...)):
         raise HTTPException(status_code=429, detail="Insufficient credits. Please top up.")
         
     return x_api_key 
+
 
 @app.get("/")
 def read_root():
