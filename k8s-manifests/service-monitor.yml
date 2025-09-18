@@ -2,9 +2,9 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: llm-api-monitor
-  namespace: monitoring
+  namespace: default
   labels:
-    release: monitoring
+    release: my-kube-prometheus-stack
 spec:
   selector:
     matchLabels:

@@ -1,12 +1,23 @@
-from fastapi import FastAPI, HTTPException, Header, Depends
+from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from pydantic import BaseModel
 from transformers import pipeline
 from prometheus_fastapi_instrumentator import Instrumentator
 import database
 
+def get_api_key_label(request: Request) -> dict:
+    api_key = request.headers.get("x-api-key", "none")
+    return {"api_key": api_key}
+
 app = FastAPI(title="LLM Inference API")
 
-Instrumentator().instrument(app).expose(app)
+Instrumentator(
+    should_instrument_requests=True,
+    should_instrument_responses=True,
+    excluded_handlers=["/metrics"], # Exclude the metrics endpoint itself
+).instrument(
+    app, 
+    additional_labels=get_api_key_label # ✨ Here's the magic!
+).expose(app)
 
 database.Initialize_db()
 
@@ -42,8 +53,7 @@ async def verify_api_key(x_api_key: str = Header(...)):
     if user["credits"] <= 0:
         raise HTTPException(status_code=429, detail="Insufficient credits. Please top up.")
         
-    return x_api_key # Return the key for further use if needed
-
+    return x_api_key 
 
 @app.get("/")
 def read_root():
