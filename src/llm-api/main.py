@@ -10,11 +10,14 @@ def get_api_key_label(request: Request) -> dict:
     api_key = request.headers.get("x-api-key", "none")
     return {"api_key": api_key}
 
-instrumentator = Instrumentator(excluded_handlers=["/metrics"])
-
-instrumentator.add_instrumentation(get_api_key_label)
-
-instrumentator.instrument(app).expose(app)
+Instrumentator(
+    should_instrument_requests=True,
+    should_instrument_responses=True,
+    excluded_handlers=["/metrics"], 
+).instrument(
+    app, 
+    additional_labels=get_api_key_label 
+).expose(app)
 
 database.Initialize_db()
 
