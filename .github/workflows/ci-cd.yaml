@@ -34,7 +34,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/llm-api:${{ github.run_id }}
 
-  update-newtag-in-manifest:
+  update-newtag-in-helm:
     runs-on: ubuntu-latest
     needs: docker
     steps:
@@ -43,9 +43,9 @@ jobs:
         with:
           token: ${{ secrets.GIT_PAT }}
 
-      - name: Update image tag in deployment manifest
+      - name: Update new tag in Helm chart
         run: |
-          sed -i "s|ariefshaik007/llm-api:.*|ariefshaik007/llm-api:${{ github.run_id }}|" k8s-manifests/deployment.yml
+          sed -i "s/tag: .*/tag: '${{ github.run_id }}'/" helm/llm-api-chart/values.yaml
 
       - name: Commit and push changes
         run: |
@@ -55,44 +55,3 @@ jobs:
           git commit -m "Update image tag to ${{ github.run_id }}"
           git push    
     
-  deploy-to-aks:
-    runs-on: ubuntu-latest
-    needs: update-newtag-in-manifest
-    env:
-      RESOURCE_GROUP: 'llm-inference-rg'     
-      CLUSTER_NAME: 'llm-inference-cluster'
-    steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
-
-    - name: Log in to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Set AKS context
-      run: az aks get-credentials --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CLUSTER_NAME }} --overwrite-existing
-        
-    - name: Apply Kubernetes manifests for Postgres Deployment
-      run: |
-        kubectl apply -f k8s-manifests/postgres-secret.yml
-        kubectl apply -f k8s-manifests/postgres-pvc.yml
-        kubectl apply -f k8s-manifests/postgres-deployment.yml
-        kubectl apply -f k8s-manifests/postgres-service.yml
-
-    - name: Apply Kubernetes manifests to deploy LLM API (Deployment, Service, HPA, Ingress, RBAC)
-      run: |
-        kubectl apply -f k8s-manifests/rbac.yml
-        kubectl apply -f k8s-manifests/deployment.yml
-        kubectl apply -f k8s-manifests/service.yml
-        kubectl apply -f k8s-manifests/hpa.yml
-        kubectl apply -f k8s-manifests/ingress.yml
-
-    - name: Apply Kubernetes manifests to deploy Cert-Manager
-      run: |
-        kubectl apply -f k8s-manifests/cert-manager-issuer.yml
-
-    - name: Deploy monitoring Ingress (Prometheus & Grafana Ingress)
-      run: |
-        kubectl apply -f monitoring/prometheus-ingress.yml
-        kubectl apply -f monitoring/grafana-ingress.yml

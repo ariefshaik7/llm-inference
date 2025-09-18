@@ -1,6 +1,10 @@
-
-
 image:
   repository: ariefshaik007/llm-api
   pullPolicy: IfNotPresent
-  tag: '17796490489'
+  tag: "17818221513"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+resources: {}

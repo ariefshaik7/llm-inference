@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llm-api
+  name: llm-api-deployment
   labels:
     app: llm-api
 spec:
@@ -14,9 +14,12 @@ spec:
       labels:
         app: llm-api
     spec:
+      serviceAccountName: llm-api-sa
+      nodeSelector:
+        gpu: "true"
       containers:
       - name: llm-api
-        image: ariefshaik007/llm-api:{{ .Values.image.tag }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: 8000
         env:

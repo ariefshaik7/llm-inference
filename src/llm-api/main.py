@@ -11,12 +11,10 @@ def get_api_key_label(request: Request) -> dict:
 app = FastAPI(title="LLM Inference API")
 
 Instrumentator(
-    should_instrument_requests=True,
-    should_instrument_responses=True,
-    excluded_handlers=["/metrics"], # Exclude the metrics endpoint itself
+    excluded_handlers=["/metrics"] 
 ).instrument(
-    app, 
-    additional_labels=get_api_key_label # ✨ Here's the magic!
+    app,
+    additional_labels=get_api_key_label
 ).expose(app)
 
 database.Initialize_db()

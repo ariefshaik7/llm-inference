@@ -1,11 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: llm-api
+  name: llm-api-ingress
   annotations:
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
     nginx.ingress.kubernetes.io/limit-rpm: "100" 
-    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
 spec:
   ingressClassName: nginx
   tls:
@@ -20,6 +19,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: llm-api
+            name: llm-api-service
             port:
               number: 8000
