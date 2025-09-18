@@ -1,7 +1,7 @@
 image:
   repository: ariefshaik007/llm-api
   pullPolicy: IfNotPresent
-  tag: '17822928833'
+  tag: '17823472896'
 
 service:
   type: ClusterIP
