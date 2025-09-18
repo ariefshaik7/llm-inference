@@ -4,15 +4,19 @@ from transformers import pipeline
 from prometheus_fastapi_instrumentator import Instrumentator
 import database
 
+app = FastAPI(title="LLM Inference API")
+
 def get_api_key_label(request: Request) -> dict:
     api_key = request.headers.get("x-api-key", "none")
     return {"api_key": api_key}
 
-app = FastAPI(title="LLM Inference API")
 
-instrumentator = Instrumentator(excluded_handlers=["/metrics"])
+instrumentator = Instrumentator(
+    excluded_handlers=["/metrics"],
+    async_instrumentations=[get_api_key_label],
+)
 
-instrumentator.add_instrumentation(get_api_key_label)
+instrumentator.instrument(app).expose(app)
 
 instrumentator.instrument(app).expose(app)
 
