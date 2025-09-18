@@ -11,12 +11,9 @@ def get_api_key_label(request: Request) -> dict:
     return {"api_key": api_key}
 
 
-instrumentator = Instrumentator(
-    excluded_handlers=["/metrics"],
-    async_instrumentations=[get_api_key_label],
-)
+instrumentator = Instrumentator(excluded_handlers=["/metrics"])
 
-instrumentator.instrument(app).expose(app)
+instrumentator.add_instrumentation(get_api_key_label)
 
 instrumentator.instrument(app).expose(app)
 

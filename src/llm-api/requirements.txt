@@ -3,5 +3,5 @@ uvicorn[standard]
 transformers
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch
-psycopg[binary] 
-prometheus-fastapi-instrumentator
+psycopg[binary]
+prometheus-fastapi-instrumentator==6.1.0
