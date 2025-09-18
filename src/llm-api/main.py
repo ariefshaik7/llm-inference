@@ -10,7 +10,6 @@ def get_api_key_label(request: Request) -> dict:
     api_key = request.headers.get("x-api-key", "none")
     return {"api_key": api_key}
 
-
 instrumentator = Instrumentator(excluded_handlers=["/metrics"])
 
 instrumentator.add_instrumentation(get_api_key_label)
