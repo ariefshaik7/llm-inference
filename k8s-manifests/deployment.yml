@@ -19,7 +19,7 @@ spec:
         gpu: "true"
       containers:
       - name: llm-api
-        image: ariefshaik007/llm-api:17817912608
+        image: ariefshaik007/llm-api:17817944529
         ports:
         - containerPort: 8000
         env:
