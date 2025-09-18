@@ -2,9 +2,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: llm-api-ingress
+  namespace: {{.Release.Namespace }}
   annotations:
     cert-manager.io/cluster-issuer: "selfsigned-issuer"
-    nginx.ingress.kubernetes.io/limit-rpm: "100" 
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
 spec:
   ingressClassName: nginx
   tls:

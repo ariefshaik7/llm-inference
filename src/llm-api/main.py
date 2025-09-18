@@ -1,36 +1,52 @@
 from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from pydantic import BaseModel
 from transformers import pipeline
-from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_fastapi_instrumentator import Instrumentator, Info
 import database
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="LLM Inference API")
-
-def get_api_key_label(request: Request) -> dict:
-    api_key = request.headers.get("x-api-key", "none")
-    return {"api_key": api_key}
-
-Instrumentator(
-    should_instrument_requests=True,
-    should_instrument_responses=True,
-    excluded_handlers=["/metrics"], 
-).instrument(
-    app, 
-    additional_labels=get_api_key_label 
-).expose(app)
-
-database.Initialize_db()
-
-try:
-    model = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
-    print("Model loaded successfully!")
-except Exception as e:
-    print("Error loading model: {e}")
+# Lifespan manager to handle startup and shutdown events
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize the database on startup
+    database.Initialize_db()
+    
+    # Load the model on startup
+    global model
+    try:
+        model = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+        print("Model loaded successfully!")
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        model = None
+    
+    yield
+    
+    # Clean up resources on shutdown if needed
     model = None
+    print("Application shutdown: Model unloaded.")
 
+app = FastAPI(title="LLM Inference API", lifespan=lifespan)
+
+# --- Prometheus Instrumentation ---
+
+# Custom function to add api_key label to metrics
+def get_api_key_label(info: Info) -> None:
+    api_key = info.request.headers.get("x-api-key", "none")
+    info.labels["api_key"] = api_key
+
+# Set up the instrumentator
+instrumentator = Instrumentator(
+    excluded_handlers=["/metrics"],
+)
+instrumentator.add(get_api_key_label) # Correctly add the custom instrumentation
+instrumentator.instrument(app).expose(app)
+
+# --- Model placeholder ---
+model = None
 
 class TextInput(BaseModel):
-    text:str
+    text: str
 
 async def verify_api_key(x_api_key: str = Header(...)):
     """
@@ -53,7 +69,7 @@ async def verify_api_key(x_api_key: str = Header(...)):
     if user["credits"] <= 0:
         raise HTTPException(status_code=429, detail="Insufficient credits. Please top up.")
         
-    return x_api_key 
+    return x_api_key
 
 @app.get("/")
 def read_root():
@@ -65,15 +81,12 @@ def health_check():
 
 @app.post("/predict")
 def predict(data: TextInput, api_key: str = Depends(verify_api_key)):
-
     if model is None:
         raise HTTPException(status_code=503, detail="Model is not available.")
     
     database.consume_credit(api_key)
-
     prediction = model(data.text)
-    result = prediction[0]
-
+    result = prediction
     user = database.get_user(api_key)
 
     return {

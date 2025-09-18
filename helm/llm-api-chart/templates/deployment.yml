@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: llm-api-deployment
-  namespace: llm-inference
+  namespace: {{.Release.Namespace }}
   labels:
     app: llm-api
 spec:
@@ -20,7 +20,7 @@ spec:
         gpu: "true"
       containers:
       - name: llm-api
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        image: "{{.Values.image.repository }}:{{.Values.image.tag }}"
         ports:
         - containerPort: 8000
         env:
@@ -29,8 +29,8 @@ spec:
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
-              name: postgres-secret 
-              key: POSTGRES_DB   
+              name: postgres-secret
+              key: POSTGRES_DB
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
@@ -48,13 +48,13 @@ spec:
           initialDelaySeconds: 15
           periodSeconds: 10
         livenessProbe:
-          httpGet:  
+          httpGet:
             path: /health
             port: 8000
           initialDelaySeconds: 30
           periodSeconds: 20
         resources:
           requests:
-            cpu: "250m" 
+            cpu: "250m"
           limits:
-            cpu: "500m" 
+            cpu: "500m"

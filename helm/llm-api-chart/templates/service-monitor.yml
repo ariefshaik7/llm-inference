@@ -2,7 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: llm-api-monitor
-  namespace: default
+  namespace: {{.Release.Namespace }}
   labels:
     release: my-kube-prometheus-stack
 spec:
@@ -11,8 +11,8 @@ spec:
       app: llm-api
   namespaceSelector:
     matchNames:
-      - llm-inference
+      - {{.Release.Namespace }}
   endpoints:
-    - port: http           
+    - port: http
       path: /metrics
       interval: 15s
