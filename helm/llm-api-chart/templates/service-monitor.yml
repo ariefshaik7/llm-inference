@@ -12,6 +12,7 @@ spec:
   namespaceSelector:
     matchNames:
       - default
+      - llm-inference
   endpoints:
     - port: http           
       path: /metrics
